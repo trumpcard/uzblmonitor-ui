@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<style>
+table#monitors_table tbody input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing: border-box;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<table border="1" id="monitors_table">
+<thead>
+    <th width="300px">Host</th>
+    <th width="300px">URL</th>
+    <th width="0">Actions</th>
+</thead>
+<tbody>
+{% for host_config in host_configs %}
+<form action="/host" method="POST">
+<input type="hidden" name="host" value="{{ host_config.host }}"/>
+<tr>
+    <td>{{ host_config.host }}</td>
+    <td><input type="text" name="url" value="{{ host_config.url }}"/></td>
+    <td>
+        <input type="submit" name="submit" value="Save"/>
+        <input type="submit" name="submit" value="Delete"/>
+    </td>
+</tr>
+</form>
+{% endfor %}
+
+<form action="/host" method="POST">
+<tr>
+    <td><input type="text" name="host"/></td>
+    <td><input type="text" name="url"/></td>
+    <td>
+        <input type="submit" name="submit" value="Create"/>
+    </td>
+</tr>
+</form>
+</tbody>
+</table>
+{% endblock %}
