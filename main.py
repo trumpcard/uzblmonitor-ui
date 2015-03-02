@@ -2,7 +2,7 @@ from collections import namedtuple
 import json
 
 from consul import Consul
-from flask import Flask, render_template, redirect, url_for, request, abort
+from flask import Flask, render_template, redirect, url_for, request, abort, jsonify
 
 PREFIX = 'service/uzblmonitor/'
 
@@ -101,6 +101,17 @@ def host():
         c.kv.delete(key)
 
     return redirect(url_for('home'))
+
+
+@app.route('/hosts')
+def hosts():
+    host_configs = [
+        hc._asdict()
+        for hc in get_host_configs()
+    ]
+    return jsonify({
+        'hostConfigs': host_configs,
+    })
 
 
 if __name__ == '__main__':

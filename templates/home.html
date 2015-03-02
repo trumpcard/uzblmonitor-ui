@@ -1,17 +1,26 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html>
+<head>
+<title>uzblmonitor</title>
+  <style>
+  table#monitors_table tbody input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      -webkit-box-sizing:border-box;
+      -moz-box-sizing: border-box;
+  }
+  </style>
 
-{% block head %}
-<style>
-table#monitors_table tbody input[type="text"] {
-    width: 100%;
-    box-sizing: border-box;
-    -webkit-box-sizing:border-box;
-    -moz-box-sizing: border-box;
-}
-</style>
-{% endblock %}
+  <script src="static/js/react.js"></script>
+  <script src="static/js/JSXTransformer.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="static/js/uzblmonitor.js" type="text/jsx"></script>
+</head>
+<body>
 
-{% block content %}
+    <div id="example"></div>
+
+<h1>uzblmonitor</h1>
 <table border="1" id="monitors_table">
 <thead>
     <th width="300px">Host</th>
@@ -44,4 +53,5 @@ table#monitors_table tbody input[type="text"] {
 </form>
 </tbody>
 </table>
-{% endblock %}
+</body>
+</html>
