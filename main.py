@@ -1,107 +1,132 @@
-from collections import namedtuple
-import json
+from collections import defaultdict, namedtuple
 
 from consul import Consul
 from flask import Flask, render_template, redirect, url_for, request, abort
 
 PREFIX = 'service/uzblmonitor/'
 
-HostConfig = namedtuple('HostConfig', "host url")
+HostConfig = namedtuple('HostConfig', "host alias url")
 
 app = Flask('uzblmonitor-ui')
 
+c = Consul('192.168.59.103')
 
-class VK(Consul.KV):
-
-    def keys(
-            self,
-            prefix,
-            separator=None,
-            token=None,
-            dc=None):
-        assert not prefix.startswith('/')
-        params = {}
-        params['keys'] = 1
-        if separator:
-            params['separator'] = separator
-        token = token or self.agent.token
-        if token:
-            params['token'] = token
-        dc = dc or self.agent.dc
-        if dc:
-            params['dc'] = dc
-
-        def callback(response):
-            if response.code == 404:
-                data = None
-            else:
-                data = json.loads(response.body)
-            return response.headers['X-Consul-Index'], data
-
-        return self.agent.http.get(
-            callback, '/v1/kv/%s' % prefix, params=params)
-
-
-class Lusnoc(Consul):
-
-    KV = VK
-
-    def __init__(self, *args, **kwargs):
-        super(Lusnoc, self).__init__(*args, **kwargs)
-        self.kv = self.KV(self)
-
-
-c = Lusnoc('172.16.10.13')
 
 def mk_key(*pieces):
     return PREFIX + '/'.join(pieces)
 
 
-def get_hosts():
-    _, keys = c.kv.keys(mk_key('hosts/'), separator='/')
-    return [k.rsplit('/', 2)[-2] for k in keys]
+def split_key(key):
+    """Strip PREFIX and return key parts"""
+    return key[len(PREFIX):].split('/')
 
 
-def get_host_configs():
+def get_monitor_configs():
     _, objs = c.kv.get(mk_key('hosts/'), recurse=True)
 
-    host_configs = []
-    for o in objs or []:
-        host = o['Key'][len(PREFIX):].split('/', 2)[1]
-        url = o['Value']
+    data = defaultdict(dict)  # host -> {k -> v}
 
-        host_configs.append(HostConfig(host, url))
+    for o in objs or []:
+        key_parts = split_key(o['Key'])
+        _, host, param = key_parts  # eg. hosts/sfotv11-17.../url
+        data[host][param] = o['Value']
+
+    host_configs = [
+        HostConfig(host, params.get('alias'), params.get('url'))
+        for host, params in data.iteritems()
+    ]
 
     return host_configs
 
 
 @app.route('/')
 def home():
-    host_configs = get_host_configs()
-    return render_template('home.html', host_configs=host_configs)
+    monitor_configs = [
+        mc._asdict()
+        for mc in get_monitor_configs()
+    ]
+
+    return render_template('home.html', monitor_configs=monitor_configs)
 
 
-@app.route('/host', methods=['POST'])
-def host():
-    if set(request.form.keys()) < set(['host', 'url', 'submit']):
+@app.route('/monitor/create', methods=['POST'])
+def monitor_create():
+    if set(request.form.keys()) < set(['host', 'url']):
         return abort(400)
 
     host = request.form['host']
     url = request.form['url']
-    submit = request.form['submit']
 
-    if not all([host, url, submit]):
+    if not all((host, url)):
         return abort(400)
 
     key = mk_key('hosts', host, 'url')
 
-    if submit in ('Save', 'Create'):
-        c.kv.put(key, url)
-    elif submit == 'Delete':
-        c.kv.delete(key)
+    c.kv.put(key, url)
 
     return redirect(url_for('home'))
 
 
+@app.route('/monitor/delete', methods=['POST'])
+def monitor_delete():
+    if set(request.form.keys()) < set(['host']):
+        return abort(400)
+
+    host = request.form['host']
+
+    if not host:
+        return abort(400)
+
+    key = mk_key('hosts', host, 'url')
+    c.kv.delete(key)
+
+    key = mk_key('hosts', host, 'alias')
+    c.kv.delete(key)
+
+    return "", 204
+
+
+@app.route('/monitor/update_alias', methods=['POST'])
+def monitor_update_alias():
+    if set(request.form.keys()) < set(['pk', 'value']):
+        return abort(400)
+
+    host = request.form['pk']
+    alias = request.form['value']
+
+    if not host:
+        return abort(400)
+
+    key = mk_key('hosts', host, 'alias')
+
+    if alias:
+        c.kv.put(key, alias)
+    else:
+        c.kv.delete(key)
+
+    return "", 204
+
+
+@app.route('/monitor/update_url', methods=['POST'])
+def monitor():
+    if set(request.form.keys()) < set(['pk', 'value']):
+        return abort(400)
+
+    host = request.form['pk']
+    url = request.form['value']
+
+    if not host:
+        return abort(400)
+
+    if not url:
+        return "URL required", 400
+
+    key = mk_key('hosts', host, 'url')
+
+    c.kv.put(key, url)
+
+    return "", 204
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
