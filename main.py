@@ -51,7 +51,7 @@ class Lusnoc(Consul):
         self.kv = self.KV(self)
 
 
-c = Lusnoc('172.16.10.13')
+c = Lusnoc('sfotv11-11')
 
 def mk_key(*pieces):
     return PREFIX + '/'.join(pieces)
@@ -62,7 +62,7 @@ def get_hosts():
     return [k.rsplit('/', 2)[-2] for k in keys]
 
 
-def get_host_configs():
+def get_monitor_configs():
     _, objs = c.kv.get(mk_key('hosts/'), recurse=True)
 
     host_configs = []
@@ -77,7 +77,7 @@ def get_host_configs():
 
 @app.route('/')
 def home():
-    host_configs = get_host_configs()
+    host_configs = get_monitor_configs()
     return render_template('home.html', host_configs=host_configs)
 
 
@@ -103,16 +103,68 @@ def host():
     return redirect(url_for('home'))
 
 
-@app.route('/hosts')
-def hosts():
-    host_configs = [
-        hc._asdict()
-        for hc in get_host_configs()
+@app.route('/monitor', methods=['POST'])
+def monitor():
+    if set(request.form.keys()) < set(['pk', 'value']):
+        return abort(400)
+
+    host = request.form['pk']
+    url = request.form['value']
+
+    if not all((host, url)):
+        return abort(400)
+
+    key = mk_key('hosts', host, 'url')
+
+    c.kv.put(key, url)
+
+    return "", 204
+
+@app.route('/monitor/create', methods=['POST'])
+def monitor_create():
+    if set(request.form.keys()) < set(['host', 'url']):
+        return abort(400)
+
+    host = request.form['host']
+    url = request.form['url']
+
+    if not all((host, url)):
+        return abort(400)
+
+    key = mk_key('hosts', host, 'url')
+
+    c.kv.put(key, url)
+
+    return redirect(url_for('home'))
+
+
+@app.route('/monitor/delete', methods=['POST'])
+def monitor_delete():
+    if set(request.form.keys()) < set(['host']):
+        return abort(400)
+
+    host = request.form['host']
+
+    if not host:
+        return abort(400)
+
+    key = mk_key('hosts', host, 'url')
+
+    c.kv.delete(key)
+
+    return "", 204
+
+
+@app.route('/monitors')
+def monitors():
+    monitor_configs = [
+        mc._asdict()
+        for mc in get_monitor_configs()
     ]
     return jsonify({
-        'hostConfigs': host_configs,
+        'monitorConfigs': monitor_configs,
     })
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
