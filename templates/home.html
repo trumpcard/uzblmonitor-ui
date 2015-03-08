@@ -16,18 +16,28 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <link href="static/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
     <link href="static/css/style.css" rel="stylesheet"/>
+
+    <script>
+    (function() {
+        window.monitorConfigs = {{monitor_configs|tojson}};
+    })();
+    </script>
   </head>
   <body>
 
     <div class="container">
-      <div class="header">
-        <h1>uzblmonitor</h1>
+      <div class="row header">
+        <div class="col-md-1"></div>
+        <div class="col-md-10"><h1>uzblmonitor</h1></div>
+        <div class="col-md-1"></div>
       </div>
     
       <div class="row">
-        <div id="example"></div>
+        <div class="col-md-1"></div>
+        <div class="col-md-10" id="monitortable"></div>
+        <div class="col-md-1"></div>
       </div>
     
       <div class="row">
@@ -53,12 +63,12 @@
       </div>
     </div>
     
-    <script src="static/js/react.js"></script>
-    <script src="static/js/JSXTransformer.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="static/react/js/react.js"></script>
+    <script src="static/react/js/JSXTransformer.js"></script>
     <script src="static/bootstrap/js/bootstrap.min.js"></script>
+    <script src="static/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
     <script src="static/js/uzblmonitor.js" type="text/jsx"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
 
   </body>
 </html>

@@ -1,10 +1,9 @@
-$(document).ready(function() {
-  $.fn.editable.defaults.mode = 'inline';
-});
+$.fn.editable.defaults.mode = 'inline';
 
 var MonitorRow = React.createClass({
   componentDidMount: function() {
-    $(this.refs.editable.getDOMNode()).editable()
+    $(this.refs.editableAlias.getDOMNode()).editable()
+    $(this.refs.editableURL.getDOMNode()).editable()
   },
 
   doDelete: function() {
@@ -14,11 +13,52 @@ var MonitorRow = React.createClass({
   },
 
   render: function() {
+    var host = this.props.monitorConfig.host,
+        alias = this.props.monitorConfig.alias,
+        url = this.props.monitorConfig.url;
+
+    var hostColValue;
+
+    if (alias) {
+        hostColValue = this.props.monitorConfig.alias;
+    } else {
+        hostColValue = (<em>{this.props.monitorConfig.host}</em>);
+    }
+
+    var hostCol = (
+        <a href="#"
+           ref="editableAlias"
+           name="alias"
+           data-type="text"
+           data-pk={host}
+           data-url="/monitor/update_alias"
+           data-title="Monitor alias"
+           data-value={alias || ""}
+           data-emptytext={host}
+           data-emptyclass="no-alias"
+           data-unsavedclass="">
+            {hostColValue}
+        </a>
+    );
+
+    var urlCol = (
+        <a href="#"
+           ref="editableURL"
+           name="url"
+           data-type="text"
+           data-pk={host}
+           data-url="/monitor/update_url"
+           data-title="Monitor URL"
+           data-unsavedclass="">
+            {url}
+        </a>
+    )
+
     return (
       <tr>
         <td><span className="glyphicon glyphicon-remove delete-icon" onClick={this.doDelete}></span></td>
-        <td>{this.props.monitorConfig.host}</td>
-        <td><a href="#" ref="editable" name="url" data-type="text" data-pk={this.props.monitorConfig.host} data-url="/monitor" data-title="Monitor URL">{this.props.monitorConfig.url}</a></td>
+        <td>{hostCol}</td>
+        <td>{urlCol}</td>
       </tr>
     );
 
@@ -28,18 +68,8 @@ var MonitorRow = React.createClass({
 var MonitorTable = React.createClass({
   getInitialState: function() {
     return {
-      monitorConfigs: []
+      monitorConfigs: window.monitorConfigs
     };
-  },
-
-  componentDidMount: function() {
-    $.get("/monitors", function(result) {
-      if (this.isMounted()) {
-        this.setState({
-          monitorConfigs: result.monitorConfigs
-        })
-      }
-    }.bind(this));
   },
 
   deleteMonitor: function(host) {
@@ -80,5 +110,5 @@ var MonitorTable = React.createClass({
 
 React.render(
   <MonitorTable />,
-  document.getElementById('example')
+  document.getElementById('monitortable')
 );
