@@ -9,7 +9,7 @@ HostConfig = namedtuple('HostConfig', "host alias url")
 
 app = Flask('uzblmonitor-ui')
 
-c = Consul('192.168.59.103')
+c = Consul()
 
 
 def mk_key(*pieces):
