@@ -1,28 +1,32 @@
 from collections import defaultdict, namedtuple
+import optparse
 
 from consul import Consul
-from flask import Flask, render_template, redirect, url_for, request, abort
+from flask import Flask, render_template, redirect, url_for, request, abort, g
 
-PREFIX = 'service/uzblmonitor/'
+CONSUL_PREFIX = 'service/uzblmonitor/'
 
-HostConfig = namedtuple('HostConfig', "host alias url")
+MonitorConfig = namedtuple('MonitorConfig', "host alias url")
 
 app = Flask('uzblmonitor-ui')
 
-c = Consul()
+
+@app.before_request
+def before_request():
+    g.c = Consul(app.config['consul_host'], app.config['consul_port'])
 
 
 def mk_key(*pieces):
-    return PREFIX + '/'.join(pieces)
+    return CONSUL_PREFIX + '/'.join(pieces)
 
 
 def split_key(key):
-    """Strip PREFIX and return key parts"""
-    return key[len(PREFIX):].split('/')
+    """Strip CONSUL_PREFIX and return key parts"""
+    return key[len(CONSUL_PREFIX):].split('/')
 
 
 def get_monitor_configs():
-    _, objs = c.kv.get(mk_key('hosts/'), recurse=True)
+    _, objs = g.c.kv.get(mk_key('hosts/'), recurse=True)
 
     data = defaultdict(dict)  # host -> {k -> v}
 
@@ -32,7 +36,7 @@ def get_monitor_configs():
         data[host][param] = o['Value']
 
     host_configs = [
-        HostConfig(host, params.get('alias'), params.get('url'))
+        MonitorConfig(host, params.get('alias'), params.get('url'))
         for host, params in data.iteritems()
     ]
 
@@ -62,7 +66,7 @@ def monitor_create():
 
     key = mk_key('hosts', host, 'url')
 
-    c.kv.put(key, url)
+    g.c.kv.put(key, url)
 
     return redirect(url_for('home'))
 
@@ -78,10 +82,10 @@ def monitor_delete():
         return abort(400)
 
     key = mk_key('hosts', host, 'url')
-    c.kv.delete(key)
+    g.c.kv.delete(key)
 
     key = mk_key('hosts', host, 'alias')
-    c.kv.delete(key)
+    g.c.kv.delete(key)
 
     return "", 204
 
@@ -100,9 +104,9 @@ def monitor_update_alias():
     key = mk_key('hosts', host, 'alias')
 
     if alias:
-        c.kv.put(key, alias)
+        g.c.kv.put(key, alias)
     else:
-        c.kv.delete(key)
+        g.c.kv.delete(key)
 
     return "", 204
 
@@ -123,10 +127,30 @@ def monitor():
 
     key = mk_key('hosts', host, 'url')
 
-    c.kv.put(key, url)
+    g.c.kv.put(key, url)
 
     return "", 204
 
 
+def main():
+    parser = optparse.OptionParser()
+    parser.add_option('--app-host', default='127.0.0.1')
+    parser.add_option('--app-port', type=int, default=5000)
+    parser.add_option('--consul-host', default='127.0.0.1')
+    parser.add_option('--consul-port', type=int, default=8500)
+    parser.add_option('--debug', action='store_true', default=False)
+
+    opts, _ = parser.parse_args()
+
+    app.config['consul_host'] = opts.consul_host
+    app.config['consul_port'] = opts.consul_port
+
+    app.run(
+        host=opts.app_host,
+        port=opts.app_port,
+        debug=opts.debug,
+    )
+
+
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True)
+    main()
