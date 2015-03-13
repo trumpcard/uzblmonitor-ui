@@ -88,6 +88,26 @@ def monitor_delete():
     return "", 204
 
 
+@app.route('/monitor/refresh', methods=['POST'])
+def monitor_refresh():
+    if set(request.form.keys()) < set(['host']):
+        return abort(400)
+
+    host = request.form['host']
+
+    if not host:
+        return abort(400)
+
+    key = mk_key('hosts', host, 'url')
+    _, data = g.c.kv.get(key)
+
+    if data:
+        g.c.kv.put(key, "about:blank")
+        g.c.kv.put(key, data['Value'])
+
+    return "", 204
+
+
 @app.route('/monitor/update_alias', methods=['POST'])
 def monitor_update_alias():
     if set(request.form.keys()) < set(['pk', 'value']):

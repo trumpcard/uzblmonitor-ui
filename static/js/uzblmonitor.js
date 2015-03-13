@@ -12,6 +12,10 @@ var MonitorRow = React.createClass({
     }.bind(this));
   },
 
+  doRefresh: function() {
+    $.post("/monitor/refresh", {host: this.props.monitorConfig.host});
+  },
+
   render: function() {
     var host = this.props.monitorConfig.host,
         alias = this.props.monitorConfig.alias,
@@ -59,6 +63,7 @@ var MonitorRow = React.createClass({
         <td><span className="glyphicon glyphicon-remove delete-icon" onClick={this.doDelete}></span></td>
         <td>{hostCol}</td>
         <td>{urlCol}</td>
+        <td><span className="glyphicon glyphicon-refresh refresh-icon" onClick={this.doRefresh}></span></td>
       </tr>
     );
 
@@ -100,6 +105,7 @@ var MonitorTable = React.createClass({
             <th width="0"></th>
             <th width="50%">Host</th>
             <th width="50%">URL</th>
+            <th width="0"></th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>

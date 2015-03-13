@@ -3,6 +3,10 @@
     cursor: pointer;
 }
 
+.refresh-icon {
+    cursor: pointer;
+}
+
 .no-alias {
     font-style: italic;
 }
