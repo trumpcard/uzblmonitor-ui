@@ -69,24 +69,6 @@ def home():
     return render_template('home.html', monitor_configs=monitor_configs)
 
 
-@app.route('/monitor/create', methods=['POST'])
-def monitor_create():
-    if set(request.form.keys()) < set(['host', 'url']):
-        return abort(400)
-
-    host = request.form['host']
-    url = request.form['url']
-
-    if not all((host, url)):
-        return abort(400)
-
-    key = mk_key('hosts', host, 'url')
-
-    g.c.kv.put(key, url)
-
-    return redirect(url_for('home'))
-
-
 @app.route('/monitor/delete', methods=['POST'])
 def monitor_delete():
     if set(request.form.keys()) < set(['host']):
