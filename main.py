@@ -25,10 +25,26 @@ def split_key(key):
     return key[len(CONSUL_PREFIX):].split('/')
 
 
+def get_all_hosts():
+    hosts = set()
+
+    _, nodes = g.c.catalog.service('uzblmonitor')
+    for node in nodes:
+        for tag in node['ServiceTags']:
+            k, v = tag.split('=', 1)
+            if k == 'fqdn':
+                hosts.add(v)
+
+    return hosts
+
+
 def get_monitor_configs():
     _, objs = g.c.kv.get(mk_key('hosts/'), recurse=True)
 
     data = defaultdict(dict)  # host -> {k -> v}
+
+    for host in get_all_hosts():
+        data[host]  # pre-populate with all existing hosts
 
     for o in objs or []:
         key_parts = split_key(o['Key'])
