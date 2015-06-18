@@ -2,7 +2,7 @@ from collections import defaultdict, namedtuple
 import optparse
 
 from consul import Consul
-from flask import Flask, render_template, redirect, url_for, request, abort, g
+from flask import Flask, render_template, request, abort, g, jsonify
 
 CONSUL_PREFIX = 'service/uzblmonitor/'
 
@@ -67,6 +67,16 @@ def home():
     ]
 
     return render_template('home.html', monitor_configs=monitor_configs)
+
+
+@app.route('/monitors', methods=['GET'])
+def monitors_get():
+    monitor_configs = [
+        mc._asdict()
+        for mc in get_monitor_configs()
+    ]
+
+    return jsonify(monitors=monitor_configs)
 
 
 @app.route('/monitor/delete', methods=['POST'])
