@@ -4,6 +4,7 @@ var MonitorRow = React.createClass({
   componentDidMount: function() {
     $(this.refs.editableAlias.getDOMNode()).editable()
     $(this.refs.editableURL.getDOMNode()).editable()
+    $(this.refs.editableRate.getDOMNode()).editable()
   },
 
   doDelete: function() {
@@ -19,7 +20,8 @@ var MonitorRow = React.createClass({
   render: function() {
     var host = this.props.monitorConfig.host,
         alias = this.props.monitorConfig.alias,
-        url = this.props.monitorConfig.url;
+        url = this.props.monitorConfig.url,
+        refresh_rate = this.props.monitorConfig.refresh_rate;
 
     var hostColValue;
 
@@ -56,14 +58,31 @@ var MonitorRow = React.createClass({
            data-unsavedclass="">
             {url}
         </a>
-    )
+    );
+
+    var refreshCol = (
+        <a href="#"
+           ref="editableRate"
+           name="refresh_rate"
+           data-type="text"
+           data-pk={host}
+           data-url="/monitor/update_refresh_rate"
+           data-title="Refresh Rate (sec)"
+           data-value={refresh_rate || ""}
+           data-emptytext="None"
+           data-emptyclass="no-alias"
+           data-unsavedclass="">
+            {refresh_rate}
+        </a>
+    );
 
     return (
       <tr>
         <td><span className="glyphicon glyphicon-remove delete-icon" onClick={this.doDelete}></span></td>
         <td>{hostCol}</td>
         <td>{urlCol}</td>
-        <td><span className="glyphicon glyphicon-refresh refresh-icon" onClick={this.doRefresh}></span></td>
+        <td className="cell-refresh"><span className="glyphicon glyphicon-refresh refresh-icon" onClick={this.doRefresh}></span></td>
+        <td className="cell-rate">{refreshCol}</td>
       </tr>
     );
 
@@ -105,7 +124,8 @@ var MonitorTable = React.createClass({
             <th width="0"></th>
             <th width="50%">Host</th>
             <th width="50%">URL</th>
-            <th width="0"></th>
+            <th width="0">Refresh</th>
+            <th width="0">Rate</th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>
