@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, abort, g, jsonify
 
 CONSUL_PREFIX = 'service/uzblmonitor/'
 
-MonitorConfig = namedtuple('MonitorConfig', "host alias url")
+MonitorConfig = namedtuple('MonitorConfig', "host alias url refresh_rate")
 
 app = Flask('uzblmonitor-ui')
 
@@ -52,7 +52,7 @@ def get_monitor_configs():
         data[host][param] = o['Value']
 
     host_configs = [
-        MonitorConfig(host, params.get('alias').decode('utf-8'), params.get('url').decode('utf-8'))
+        MonitorConfig(host, params.get('alias'), params.get('url'), params.get('refresh_rate'))
         for host, params in data.items()
     ]
 
@@ -93,6 +93,9 @@ def monitor_delete():
     g.c.kv.delete(key)
 
     key = mk_key('hosts', host, 'alias')
+    g.c.kv.delete(key)
+
+    key = mk_key('hosts', host, 'refresh_rate')
     g.c.kv.delete(key)
 
     return "", 204
@@ -138,6 +141,25 @@ def monitor_update_alias():
 
     return "", 204
 
+@app.route('/monitor/update_refresh_rate', methods=['POST'])
+def monitor_update_refresh_rate():
+    if set(request.form.keys()) < set(['pk', 'value']):
+        return abort(400)
+
+    host = request.form['pk']
+    refresh_rate = request.form['value']
+
+    if not host:
+        return abort(400)
+
+    key = mk_key('hosts', host, 'refresh_rate')
+
+    if refresh_rate:
+        g.c.kv.put(key, refresh_rate)
+    else:
+        g.c.kv.delete(key)
+
+    return "", 204
 
 @app.route('/monitor/update_url', methods=['POST'])
 def monitor():

@@ -10,3 +10,10 @@
 .no-alias {
     font-style: italic;
 }
+.cell-refresh {
+    text-align: center;
+    vertical-align: middle;
+}
+.cell-rate {
+    text-align: right;
+}
