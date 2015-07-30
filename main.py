@@ -157,7 +157,7 @@ def monitor_update_refresh_rate():
     if refresh_rate:
         g.c.kv.put(key, refresh_rate)
     else:
-       g.c.kv.delete(key)
+        g.c.kv.delete(key)
 
     return "", 204
 
