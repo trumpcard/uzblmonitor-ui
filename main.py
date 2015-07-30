@@ -52,7 +52,7 @@ def get_monitor_configs():
         data[host][param] = o['Value']
 
     host_configs = [
-        MonitorConfig(host, params.get('alias'), params.get('url'))
+        MonitorConfig(host, params.get('alias').decode('utf-8'), params.get('url').decode('utf-8'))
         for host, params in data.items()
     ]
 
@@ -62,7 +62,7 @@ def get_monitor_configs():
 @app.route('/')
 def home():
     monitor_configs = [
-        mc._asdict()
+        vars(mc)
         for mc in get_monitor_configs()
     ]
 
