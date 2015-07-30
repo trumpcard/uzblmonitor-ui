@@ -53,7 +53,7 @@ def get_monitor_configs():
 
     host_configs = [
         MonitorConfig(host, params.get('alias'), params.get('url'))
-        for host, params in data.iteritems()
+        for host, params in data.items()
     ]
 
     return host_configs
