@@ -52,8 +52,8 @@ def get_monitor_configs():
         data[host][param] = o['Value']
 
     host_configs = [
-        MonitorConfig(host, params.get('alias'), params.get('url'), params.get('refresh_rate'))
-        for host, params in data.items()
+        MonitorConfig(host, params.get('alias').decode('utf-8'), params.get('url').decode('utf-8'), params.get('refresh_rate').decode('utf-8') if params.get('refresh_rate') is not None else str(None))
+        for host, params in list(data.items())
     ]
 
     return host_configs
