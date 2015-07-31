@@ -17,3 +17,20 @@
 .cell-rate {
     text-align: right;
 }
+
+#app tr td {
+	vertical-align: middle;
+}
+
+.host i {
+	margin-right: 5px;
+}
+
+span.muted {
+  	margin: 10px;
+	display: block;
+	font-size: 12px;
+	font-weight: 700;
+	color: #959595;
+	text-transform: uppercase;
+}

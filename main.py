@@ -185,7 +185,7 @@ def monitor():
 def main():
     parser = optparse.OptionParser()
     parser.add_option('--app-host', default='127.0.0.1')
-    parser.add_option('--app-port', type=int, default=5000)
+    parser.add_option('--app-port', type=int, default=5001)
     parser.add_option('--consul-host', default='127.0.0.1')
     parser.add_option('--consul-port', type=int, default=8500)
     parser.add_option('--debug', action='store_true', default=False)
