@@ -274,7 +274,7 @@ var Host = React.createClass({
   mixins: [FluxMixin],
   getInitialState: function() {
     return {
-      id: this.props.name.replace(/\./g, '_'),
+      id: this.props.name,
       alias: this.props.host.alias || this.props.name,
       refresh_rate: this.props.host.refresh_rate || "infinity",
       state: this.props.host.state
