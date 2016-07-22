@@ -18,7 +18,7 @@ var constants = {
 
 var AppStore = Fluxxor.createStore({
     initialize: function() {
-        this.monitors = {};
+        this.monitors = [];
         this.bindActions(
             constants.MONITORS_LOADED, this.onMonitorsLoaded
         )
@@ -42,7 +42,8 @@ var actions = {
       $.ajax({
           url: "/monitors",
           success: function (data, textStatus, jqXHR) {
-              self.dispatch(constants.MONITORS_LOADED, data);
+              data.monitors.sort(function(a,b) {return (a.alias > b.alias) ? 1 : ((b.alias > a.alias) ? -1 : 0);} );
+              self.dispatch(constants.MONITORS_LOADED, data.monitors);
           }
       });
     },
@@ -274,9 +275,9 @@ var Host = React.createClass({
   mixins: [FluxMixin],
   getInitialState: function() {
     return {
-      id: this.props.name.replace(/\./g, '_'),
-      name: this.props.name,
-      alias: this.props.host.alias || this.props.name,
+      id: this.props.host.host.replace(/\./g, '_'),
+      name: this.props.host.host,
+      alias: this.props.host.alias || this.props.host.host,
       refresh_rate: this.props.host.refresh_rate || "infinity",
       state: this.props.host.state
     };
@@ -311,14 +312,14 @@ var Host = React.createClass({
       <div className="host panel panel-default">
         <div className="panel-heading" role="tab">
           <h4 className="panel-title">
-            <a role="button" data-toggle="collapse" data-parent="#accordion" href={"#" + this.state.id}>
+            <a role="button" data-toggle="collapse" data-target={"#" + this.state.id}>
               <i className="glyphicon glyphicon-plus"></i>
               <RIEInput
           value={this.state.alias}
           change={this.updateAlias}
           propName="text"
           classLoading="loading"
-          classInvalid="invalid" /> ({this.props.name})
+          classInvalid="invalid" /> ({this.props.host.host})
             </a>
           </h4>
           <span className="panel-title pull-right">
@@ -359,15 +360,11 @@ var Application = React.createClass({displayName: "Application",
         return this.getFlux().store('AppStore').getState();
     },
     render: function() {
-        var rows = [];
-        for (let host in this.state.monitors) {
-            var data =  this.state.monitors[host]
-            rows.push(<Host name={host} host={data} key={host} />);
-        }
-
         return (
           <div className="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-            {rows}
+            {this.state.monitors.map(function(host, i){
+                return <Host host={host} key={i} />;
+            })}
           </div>
         );
     },

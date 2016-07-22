@@ -55,7 +55,14 @@ def get_monitor_configs():
                 value = json.loads(o['Value'].decode("utf-8"))
             data[host][param] = value
 
-    return data
+    monitor_configs = []
+    for host, v in data.iteritems():
+        mc = {'host': host}
+        mc.update(v)
+        monitor_configs.append(mc)
+
+    return monitor_configs
+
 
 @app.route('/')
 def home():
@@ -66,7 +73,7 @@ def home():
 
 @app.route('/monitors', methods=['GET'])
 def monitors_get():
-    return jsonify(get_monitor_configs())
+    return jsonify({"monitors": get_monitor_configs()})
 
 
 @app.route('/monitor/delete', methods=['POST'])

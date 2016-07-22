@@ -51,3 +51,7 @@ span.panel-title {
 .host-settings label {
     margin-right: 5px;
 }
+
+a[role=button] {
+    cursor: pointer;
+}
