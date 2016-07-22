@@ -274,7 +274,8 @@ var Host = React.createClass({
   mixins: [FluxMixin],
   getInitialState: function() {
     return {
-      id: this.props.name,
+      id: this.props.name.replace(/\./g, '_'),
+      name: this.props.name,
       alias: this.props.host.alias || this.props.name,
       refresh_rate: this.props.host.refresh_rate || "infinity",
       state: this.props.host.state
@@ -290,19 +291,19 @@ var Host = React.createClass({
     })
   },
   refresh: function() {
-    this.getFlux().actions.refreshMonitor(this.state.id);
+    this.getFlux().actions.refreshMonitor(this.state.name);
   },
   onSave: function() {
-    this.getFlux().actions.updateMonitor(this.state.id, this.state.state);
+    this.getFlux().actions.updateMonitor(this.state.name, this.state.state);
   },
   updateAlias: function(e) {
     this.setState({alias: e.text}, function(){
-      this.getFlux().actions.updateAlias(this.state.id, e.text);
+      this.getFlux().actions.updateAlias(this.state.name, e.text);
     })
   },
   updateRefreshRate: function(e) {
     this.setState({refresh_rate: e.text}, function(){
-      this.getFlux().actions.updateRefreshRate(this.state.id, e.text);
+      this.getFlux().actions.updateRefreshRate(this.state.name, e.text);
     })
   },
   render: function() {
