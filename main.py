@@ -41,10 +41,10 @@ def get_all_hosts():
 
 def get_monitor_configs():
     _, objs = g.c.kv.get(mk_key('hosts/'), recurse=True)
-    data = {}
+    data = defaultdict(dict)  # host -> {k -> v}
 
     for host in get_all_hosts():
-        data[host] = {}  # pre-populate with all existing hosts
+        data[host]  # pre-populate with all existing hosts
 
     for o in objs or []:
         if o['Value']:
@@ -56,7 +56,7 @@ def get_monitor_configs():
             data[host][param] = value
 
     monitor_configs = []
-    for host, v in data.iteritems():
+    for host, v in data.items():
         mc = {'host': host}
         mc.update(v)
         monitor_configs.append(mc)
