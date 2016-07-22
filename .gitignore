@@ -1,3 +1,4 @@
 node_modules/
 .*.swp
 virtualenv_run/
+static/js/bundle.js

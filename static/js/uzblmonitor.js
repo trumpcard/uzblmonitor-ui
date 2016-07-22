@@ -142,11 +142,19 @@ var ModeDropdown = React.createClass({
   displayname: 'ModeDropdown',
   mixins: [FluxMixin],
   getInitialState: function() {
-    return {
-      mode: this.props.state.mode || 'url',
-      value: this.props.state.value,
-      children: this.props.state.children || null
-    };
+    if (this.props.state) {
+      return {
+        mode: this.props.state.mode,
+        value: this.props.state.value,
+        children: this.props.state.children || null
+      };
+    } else {
+      return {
+        mode: 'url',
+        value: '',
+        children: null
+      };
+    }
   },
   onChange: function(value) {
     new_children = [{'mode': 'url', 'value': '', 'children': null}, {'mode': 'url', 'value': '', 'children': null}]
@@ -267,8 +275,8 @@ var Host = React.createClass({
   getInitialState: function() {
     return {
       id: this.props.name.replace(/\./g, '_'),
-      alias: this.props.host.alias,
-      refresh_rate: this.props.host.refresh_rate,
+      alias: this.props.host.alias || this.props.name,
+      refresh_rate: this.props.host.refresh_rate || "infinity",
       state: this.props.host.state
     };
   },
