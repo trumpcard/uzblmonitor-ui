@@ -7,9 +7,9 @@ var React = require("react"),
 window.React = React;
 
 var SUPPORTED_OPTIONS = [
-    { value: 'horizontal', label: 'Horizontal Split', placeholder: '0.5' },
-    { value: 'vertical', label: 'Vertical Split', placeholder: '0.5' },
-    { value: 'url', label: 'URL', placeholder: 'URL' },
+    { value: 'horizontal', label: 'Horizontal Split', placeholder: 'A value between 0 and 1' },
+    { value: 'vertical', label: 'Vertical Split', placeholder: 'A value between 0 and 1' },
+    { value: 'url', label: 'URL', placeholder: 'URL (must begin with http or https)' },
     { value: 'terminal', label: 'Command', placeholder: 'Command' }
 ];
 var constants = {
