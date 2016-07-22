@@ -1,14 +1,16 @@
 var React = require("react"),
+    ReactDOM = require("react-dom"),
     Select = require('react-select'),
+    RIEInput = require("riek").RIEInput,
     Fluxxor = require("fluxxor");
 
 window.React = React;
 
 var SUPPORTED_OPTIONS = [
-    { value: 'horizontal-split', label: 'Horizontal Split', placeholder: 'Percentage' },
-    { value: 'vertical-split', label: 'Vertical Split', placeholder: 'Percentage' },
+    { value: 'horizontal', label: 'Horizontal Split', placeholder: '0.5' },
+    { value: 'vertical', label: 'Vertical Split', placeholder: '0.5' },
     { value: 'url', label: 'URL', placeholder: 'URL' },
-    { value: 'command', label: 'Command', placeholder: 'Command' }
+    { value: 'terminal', label: 'Command', placeholder: 'Command' }
 ];
 var constants = {
   'MONITORS_LOADED': 'MONITORS_LOADED'
@@ -16,27 +18,7 @@ var constants = {
 
 var AppStore = Fluxxor.createStore({
     initialize: function() {
-        this.monitors = [
-        {
-    "alias": "OperationsTopRight",
-    "host": "sfotv11-16.corp.yelpcorp.com",
-    "refresh_rate": "3600",
-    "state": {
-        "mode": "horizontal-split",
-        "value": "10%",
-        "children": [
-            {
-                "mode": "url",
-                "value": "world"
-            },
-            {
-                "mode": "url",
-                "value": "world"
-            }
-        ]
-    }
-}
-    ];        
+        this.monitors = {};
         this.bindActions(
             constants.MONITORS_LOADED, this.onMonitorsLoaded
         )
@@ -60,7 +42,62 @@ var actions = {
       $.ajax({
           url: "/monitors",
           success: function (data, textStatus, jqXHR) {
-              // self.dispatch(constants.MONITORS_LOADED, data.monitors);
+              self.dispatch(constants.MONITORS_LOADED, data);
+          }
+      });
+    },
+    updateMonitor: function(host, state) {
+      var self = this;
+      $.ajax({
+          url: "/monitor/update",
+          method: 'POST',
+          data: {
+            host: host,
+            state: JSON.stringify(state)
+          },
+          success: function (data, textStatus, jqXHR) {
+            console.log("Saved!")
+          }
+      });
+    },
+    updateAlias: function(host, value) {
+      var self = this;
+      $.ajax({
+          url: "/monitor/update_alias",
+          method: 'POST',
+          data: {
+            host: host,
+            value: value
+          },
+          success: function (data, textStatus, jqXHR) {
+            console.log("Saved!")
+          }
+      });
+    },
+    updateRefreshRate: function(host, value) {
+      var self = this;
+      $.ajax({
+          url: "/monitor/update_refresh_rate",
+          method: 'POST',
+          data: {
+            host: host,
+            value: value
+          },
+          success: function (data, textStatus, jqXHR) {
+            console.log("Saved!")
+          }
+      });
+    },
+    refreshMonitor: function(host) {
+      var self = this;
+      $.ajax({
+          url: "/monitor/refresh",
+          method: 'POST',
+          data: {
+            host: host,
+          },
+          success: function (data, textStatus, jqXHR) {
+            console.log("Refreshed!")
           }
       });
     }
@@ -88,10 +125,11 @@ var Form = React.createClass({
         return {value: this.props.value}
     },
     onChange: function(e) {
+        e.persist();
         this.setState({value: e.target.value}, function(){
-          this.props.onChange(this.state.value);  
+          this.props.onChange(this.state.value);
         });
-        
+
     },
     render: function() {
         return (
@@ -112,28 +150,28 @@ var ModeDropdown = React.createClass({
   },
   onChange: function(value) {
     new_children = [{'mode': 'url', 'value': '', 'children': null}, {'mode': 'url', 'value': '', 'children': null}]
-    if(value == 'horizontal-split') {
-      this.setState({mode: "horizontal-split", value: '', children: new_children}, function() {
+    if(value == 'horizontal') {
+      this.setState({mode: "horizontal"}, function() {
         this.props.onStateUpdate(this.state)
       });
-    } else if(value == 'vertical-split') {
-      this.setState({mode: "vertical-split", value: '', children: new_children}, function() {
+    } else if(value == 'vertical') {
+      this.setState({mode: "vertical"}, function() {
         this.props.onStateUpdate(this.state)
       });
-    } else if(value == 'command') {
-      this.setState({mode: "command", value: '', children: null}, function() {
+    } else if(value == 'terminal') {
+      this.setState({mode: "terminal", children: null}, function() {
         this.props.onStateUpdate(this.state)
       });
     } else if(value == 'url') {
-      this.setState({mode: "url", value: '', children: null}, function() {
+      this.setState({mode: "url", children: null}, function() {
         this.props.onStateUpdate(this.state)
       });
     }
   },
   updateState: function(state) {
-    this.setState({children: state}, function() {
-      this.props.onStateUpdate(this.state)  
-    });
+    this.setState(state, function() {
+      this.props.onStateUpdate(this.state)
+    })
   },
   updateValue: function(value) {
     this.setState({value: value}, function() {
@@ -142,7 +180,7 @@ var ModeDropdown = React.createClass({
   },
   render: function () {
     var split, hr, placeholder;
-    if(this.state.mode == 'horizontal-split' || this.state.mode == 'vertical-split') {
+    if(this.state.mode == 'horizontal' || this.state.mode == 'vertical') {
       split = <Split state={this.props.state.children} onStateUpdate={this.updateState} mode={this.state.mode}/>;
     } else {
       hr = <hr/>;
@@ -162,9 +200,8 @@ var ModeDropdown = React.createClass({
               <Select value={this.state.mode} searchable={false} clearable={false} options={SUPPORTED_OPTIONS} onChange={this.onChange}/>
             </div>
             <div className="col-md-9">
-              <Form key={this.state.value} onChange={this.updateValue} value={this.state.value} placeholder={placeholder}/>
+              <Form onChange={this.updateValue} value={this.state.value} placeholder={placeholder}/>
             </div>
-            
           </div>
           <div className="row">
             {split}
@@ -185,7 +222,7 @@ var Split = React.createClass({
     } else {
        children = [{'mode': 'url', 'value': '', 'children': null}, {'mode': 'url', 'value': '', 'children': null}]
     }
-    return {children: children}; 
+    return {children: children};
   },
   updateAState: function(state){
     this.setState({children: [state, this.state.children[1]]}, function() {
@@ -198,8 +235,7 @@ var Split = React.createClass({
     })
   },
   render: function () {
-    
-    if(this.props.mode == "horizontal-split") {
+    if(this.props.mode == "horizontal") {
       a = "Left";
       b = "Right";
     } else {
@@ -230,7 +266,9 @@ var Host = React.createClass({
   mixins: [FluxMixin],
   getInitialState: function() {
     return {
-      id: this.props.host.host.replace(/\./g, '_'),
+      id: this.props.name.replace(/\./g, '_'),
+      alias: this.props.host.alias,
+      refresh_rate: this.props.host.refresh_rate,
       state: this.props.host.state
     };
   },
@@ -239,17 +277,25 @@ var Host = React.createClass({
   },
   updateState: function(state) {
     var self = this;
-    console.log("UPDATE");
-    console.log(this.state)
-    console.log(state);
     this.setState({state: state}, function() {
-      console.log(this.state)
       self.forceUpdate()
     })
   },
+  refresh: function() {
+    this.getFlux().actions.refreshMonitor(this.state.id);
+  },
   onSave: function() {
-    console.log(this.state);
-    console.log(JSON.stringify(this.state))
+    this.getFlux().actions.updateMonitor(this.state.id, this.state.state);
+  },
+  updateAlias: function(e) {
+    this.setState({alias: e.text}, function(){
+      this.getFlux().actions.updateAlias(this.state.id, e.text);
+    })
+  },
+  updateRefreshRate: function(e) {
+    this.setState({refresh_rate: e.text}, function(){
+      this.getFlux().actions.updateRefreshRate(this.state.id, e.text);
+    })
   },
   render: function() {
     return (
@@ -258,12 +304,28 @@ var Host = React.createClass({
           <h4 className="panel-title">
             <a role="button" data-toggle="collapse" data-parent="#accordion" href={"#" + this.state.id}>
               <i className="glyphicon glyphicon-plus"></i>
-              {this.props.host.alias} ({this.props.host.host})
+              <RIEInput
+          value={this.state.alias}
+          change={this.updateAlias}
+          propName="text"
+          classLoading="loading"
+          classInvalid="invalid" /> ({this.props.name})
             </a>
           </h4>
+          <span className="panel-title pull-right">
+            <i className="glyphicon glyphicon-refresh refresh-icon" onClick={this.refresh}></i>
+            (<RIEInput
+          value={this.state.refresh_rate}
+          change={this.updateRefreshRate}
+          propName="text"
+          classLoading="loading"
+          classInvalid="invalid" /> sec)
+          </span>
+
         </div>
         <div id={this.state.id} className="panel-collapse collapse" role="tabpanel">
           <div className="panel-body">
+            <hr/>
             <ModeDropdown state={this.props.host.state} onStateUpdate={this.updateState}/>
             <div className="container-fluid">
               <button className="pull-right btn btn-success" onClick={this.onSave} type="submit">Save</button>
@@ -274,6 +336,7 @@ var Host = React.createClass({
     )
   }
 })
+
 var Application = React.createClass({displayName: "Application",
     mixins: [FluxMixin, StoreWatchMixin('AppStore')],
 
@@ -281,21 +344,25 @@ var Application = React.createClass({displayName: "Application",
         return {};
     },
     componentDidMount: function () {
-        this.getFlux().actions.loadMonitors();  
+        this.getFlux().actions.loadMonitors();
     },
     getStateFromFlux: function() {
         return this.getFlux().store('AppStore').getState();
     },
     render: function() {
+        var rows = [];
+        for (let host in this.state.monitors) {
+            var data =  this.state.monitors[host]
+            rows.push(<Host name={host} host={data} key={host} />);
+        }
+
         return (
           <div className="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-            {this.state.monitors.map(function(host, i){
-                return <Host host={host} key={i} />;
-            })}            
-          </div>            
+            {rows}
+          </div>
         );
     },
 });
 
 
-React.render(React.createElement(Application, {flux: flux}), document.getElementById("app"));
+ReactDOM.render(React.createElement(Application, {flux: flux}), document.getElementById("app"));

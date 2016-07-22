@@ -1,2 +1,2 @@
 bundle:
-	browserify -t reactify -e static/js/uzblmonitor.js -o static/js/bundle.js
+	browserify static/js/uzblmonitor.js  -o static/js/bundle.js -t [ babelify --presets [ react ] ]

@@ -34,3 +34,20 @@ span.muted {
 	color: #959595;
 	text-transform: uppercase;
 }
+
+h4.panel-title {
+    display: inline;
+}
+
+span.panel-title {
+    font-size: 14px;
+    color: #666;
+}
+
+.host-settings input {
+    margin-right: 15px;
+}
+
+.host-settings label {
+    margin-right: 5px;
+}

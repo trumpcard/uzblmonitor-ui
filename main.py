@@ -1,10 +1,11 @@
 from collections import defaultdict, namedtuple
 import optparse
 
+import json
 from consul import Consul
 from flask import Flask, render_template, request, abort, g, jsonify
 
-CONSUL_PREFIX = 'service/uzblmonitor/'
+CONSUL_PREFIX = 'service/uzblmonitor2/'
 
 MonitorConfig = namedtuple('MonitorConfig', "host alias url refresh_rate")
 
@@ -40,43 +41,32 @@ def get_all_hosts():
 
 def get_monitor_configs():
     _, objs = g.c.kv.get(mk_key('hosts/'), recurse=True)
-
     data = defaultdict(dict)  # host -> {k -> v}
 
     for host in get_all_hosts():
         data[host]  # pre-populate with all existing hosts
 
     for o in objs or []:
-        key_parts = split_key(o['Key'])
-        _, host, param = key_parts  # eg. hosts/sfotv11-17.../url
-        data[host][param] = o['Value']
+        if o['Value']:
+            key_parts = split_key(o['Key'])
+            _, host, param = key_parts  # eg. hosts/sfotv11-17.../url
+            value = o['Value'].decode("utf-8")
+            if param == "state":
+                value = json.loads(o['Value'].decode("utf-8"))
+            data[host][param] = value
 
-    host_configs = [
-        MonitorConfig(host, params.get('alias').decode('utf-8'), params.get('url').decode('utf-8'), params.get('refresh_rate').decode('utf-8') if params.get('refresh_rate') is not None else str(None))
-        for host, params in list(data.items())
-    ]
-
-    return host_configs
-
+    return data
 
 @app.route('/')
 def home():
-    monitor_configs = [
-        vars(mc)
-        for mc in get_monitor_configs()
-    ]
+    monitor_configs = get_monitor_configs()
 
     return render_template('home.html', monitor_configs=monitor_configs)
 
 
 @app.route('/monitors', methods=['GET'])
 def monitors_get():
-    monitor_configs = [
-        mc._asdict()
-        for mc in get_monitor_configs()
-    ]
-
-    return jsonify(monitors=monitor_configs)
+    return jsonify(get_monitor_configs())
 
 
 @app.route('/monitor/delete', methods=['POST'])
@@ -111,11 +101,11 @@ def monitor_refresh():
     if not host:
         return abort(400)
 
-    key = mk_key('hosts', host, 'url')
+    key = mk_key('hosts', host, 'state')
     _, data = g.c.kv.get(key)
 
     if data:
-        g.c.kv.put(key, "about:blank")
+        g.c.kv.put(key, "{}")
         g.c.kv.put(key, data['Value'])
 
     return "", 204
@@ -123,10 +113,10 @@ def monitor_refresh():
 
 @app.route('/monitor/update_alias', methods=['POST'])
 def monitor_update_alias():
-    if set(request.form.keys()) < set(['pk', 'value']):
+    if set(request.form.keys()) < set(['host', 'value']):
         return abort(400)
 
-    host = request.form['pk']
+    host = request.form['host']
     alias = request.form['value']
 
     if not host:
@@ -143,10 +133,10 @@ def monitor_update_alias():
 
 @app.route('/monitor/update_refresh_rate', methods=['POST'])
 def monitor_update_refresh_rate():
-    if set(request.form.keys()) < set(['pk', 'value']):
+    if set(request.form.keys()) < set(['host', 'value']):
         return abort(400)
 
-    host = request.form['pk']
+    host = request.form['host']
     refresh_rate = request.form['value']
 
     if not host:
@@ -161,23 +151,23 @@ def monitor_update_refresh_rate():
 
     return "", 204
 
-@app.route('/monitor/update_url', methods=['POST'])
+@app.route('/monitor/update', methods=['POST'])
 def monitor():
-    if set(request.form.keys()) < set(['pk', 'value']):
+    if set(request.form.keys()) < set(['host', 'state']):
         return abort(400)
 
-    host = request.form['pk']
-    url = request.form['value']
+    host = request.form['host']
+    state = request.form['state']
 
     if not host:
         return abort(400)
 
-    if not url:
-        return "URL required", 400
+    if not state:
+        return "state required", 400
 
-    key = mk_key('hosts', host, 'url')
+    key = mk_key('hosts', host, 'state')
 
-    g.c.kv.put(key, url)
+    g.c.kv.put(key, state)
 
     return "", 204
 
