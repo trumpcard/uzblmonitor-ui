@@ -101,19 +101,6 @@ var actions = {
             console.log("Refreshed!")
           }
       });
-    },
-    updateBroadcast: function(msg) {
-      var self = this;
-      $.ajax({
-        url: "/broadcast",
-        method: 'POST',
-        data: {
-          msg: msg
-        },
-        success: function (data, textStatus, jqXHR) {
-          console.log("Saved!")
-        }
-      });
     }
 };
 
