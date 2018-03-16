@@ -197,7 +197,12 @@ def broadcast():
 def broadcast_get():
     key = mk_key('broadcast_message')
     _, data = g.c.kv.get(key)
-    return jsonify({"msg": data['Value'].decode('utf-8')})
+    msg = data['Value']
+    if not msg:
+        msg = ''
+    else:
+        msg = msg.decode('utf-8')
+    return jsonify({"msg": msg})
 
 
 def main():
