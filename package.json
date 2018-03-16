@@ -24,7 +24,7 @@
     "gulp": "^3.9.0",
     "react": "*",
     "react-async": "*",
-    "react-dom": "^15.2.1",
+    "react-dom": "^16.2.0",
     "react-router-component": "*",
     "react-select": "*",
     "reactify": "*"
@@ -33,7 +33,7 @@
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-react": "^6.11.1",
     "babelify": "^7.3.0",
-    "react-dom": "^15.2.1",
+    "react-dom": "^16.2.0",
     "react-edit-inline": "^1.0.7",
     "riek": "^1.0.2"
   }

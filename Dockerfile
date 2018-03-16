@@ -1,5 +1,4 @@
 FROM ubuntu:xenial
-MAINTAINER Patrick Lucas <plucas@yelp.com>
 
 ENV DEBIAN_FRONTEND noninteractive
 

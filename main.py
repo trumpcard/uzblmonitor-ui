@@ -179,6 +179,27 @@ def monitor():
     return "", 204
 
 
+@app.route('/broadcast', methods=['POST'])
+def broadcast():
+    if set(request.form.keys()) < set(['msg']):
+        return abort(400)
+
+    msg = request.form['msg']
+
+    key = mk_key('broadcast_message')
+
+    g.c.kv.put(key, msg)
+
+    return "", 204
+
+
+@app.route('/broadcast', methods=['GET'])
+def broadcast_get():
+    key = mk_key('broadcast_message')
+    _, data = g.c.kv.get(key)
+    return jsonify({"msg": data['Value'].decode('utf-8')})
+
+
 def main():
     parser = optparse.OptionParser()
     parser.add_option('--app-host', default='127.0.0.1')
