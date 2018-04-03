@@ -140,7 +140,7 @@ var Form = React.createClass({
 });
 
 var ModeDropdown = React.createClass({
-  displayname: 'ModeDropdown',
+  displayname: "ModeDropdown",
   mixins: [FluxMixin],
   getInitialState: function() {
     if (this.props.state) {
