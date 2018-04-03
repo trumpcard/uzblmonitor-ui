@@ -8,25 +8,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EvanKrall/uzblmonitor-ui.git"
+    "url": "git+https://github.com/trumpcard/uzblmonitor-ui.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/EvanKrall/uzblmonitor-ui/issues"
+    "url": "https://github.com/trumpcard/uzblmonitor-ui/issues"
   },
-  "homepage": "https://github.com/EvanKrall/uzblmonitor-ui#readme",
+  "homepage": "https://github.com/trumpcard/uzblmonitor-ui#readme",
   "dependencies": {
     "babel-preset-react": "^6.11.1",
     "babelify": "^7.3.0",
     "browserify": "*",
     "fluxxor": "*",
     "gulp": "^3.9.0",
-    "react": "^15.2.1",
-    "react-async": "*",
-    "react-dom": "^15.2.1",
-    "react-router-component": "*",
-    "react-select": "*",
+    "react": "^0.14.9",
+    "react-async": "2.1.0",
+    "react-dom": "^0.14.9",
+    "react-router-component": "0.27.0",
+    "react-select": "0.9.1",
     "reactify": "*"
   },
   "devDependencies": {
